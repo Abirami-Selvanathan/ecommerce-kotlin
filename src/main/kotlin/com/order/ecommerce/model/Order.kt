@@ -17,9 +17,6 @@ class Order(
     @Column(name = "order_status")
     open var orderStatus: String,
 
-    @Column(name = "customer_id")
-    open var customerId: String,
-
     @Column(name = "sub_total")
     open var subTotal: Double,
 
@@ -54,6 +51,10 @@ class Order(
     open var shippingAddress: Address,
 
     @OneToMany(targetEntity = OrderItem::class, fetch = FetchType.LAZY, mappedBy = "order")
-    open var orderItems: MutableList<OrderItem>?
+    open var orderItems: MutableList<OrderItem>?,
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id", insertable = false, updatable = false, nullable = true)
+    private var customer: Customer?
 
 ) : Serializable

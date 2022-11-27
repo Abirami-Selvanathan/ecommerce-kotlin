@@ -54,7 +54,7 @@ class OrderService(
     fun OrderDto.toOrderEntity(orderId: String) = Order(
         orderId = orderId,
         orderStatus = OrderStatus.PROCESSING.name,
-        customerId = customerId,
+        customer = null,
         subTotal = subTotal,
         totalAmt = totalAmt,
         tax = tax,
