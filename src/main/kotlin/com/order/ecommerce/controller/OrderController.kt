@@ -8,21 +8,21 @@ import io.swagger.v3.oas.annotations.Operation
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/orders")
 class OrderController(val orderService: OrderService) {
 
-    @PostMapping("/orders")
+    @PostMapping
     @Operation(summary = "Create an order", description = "Create an order")
     fun createOrder(@RequestBody orderDto: OrderDto): OrderCreateResponse {
         return orderService.createOrder(orderDto)
     }
 
-    @GetMapping("/orders/{orderId}")
+    @GetMapping("/{orderId}")
     fun findOrderById(@PathVariable(name = "orderId") orderId: String): Order {
         return orderService.findOrderById(orderId)
     }
 
-    @PatchMapping("/orders/{orderId}")
+    @PatchMapping("/{orderId}")
     fun updateOrderStatus(
         @PathVariable("orderId") orderId: String,
         @RequestParam(name = "orderStatus") orderStatus: String

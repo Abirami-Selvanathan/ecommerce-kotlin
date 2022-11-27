@@ -8,17 +8,17 @@ import lombok.extern.slf4j.Slf4j
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/products")
 @Slf4j
 class ProductController(val productService: ProductService) {
 
-    @PostMapping("/products")
+    @PostMapping
     @Operation(summary = "Create a product", description = "Create a product")
     fun createOrder(@RequestBody productDto: ProductDto): Product {
         return productService.createProduct(productDto)
     }
 
-    @GetMapping("/products/{productId}")
+    @GetMapping("/{productId}")
     @Operation(summary = "Get a product", description = "Get a product")
     fun getProduct(@PathVariable(name = "productId") productId: String): Product {
         return productService.getProduct(productId)
