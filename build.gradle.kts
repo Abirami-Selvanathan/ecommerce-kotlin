@@ -4,7 +4,6 @@ plugins {
     java
     id("org.springframework.boot") version "2.7.4"
     id("io.spring.dependency-management") version "1.0.14.RELEASE"
-    id("org.jetbrains.kotlin.plugin.noarg") version "1.6.21"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.6.21"
     kotlin("jvm") version "1.6.21"
     kotlin("plugin.spring") version "1.6.21"
@@ -28,6 +27,11 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.springframework.security:spring-security-crypto")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.security:spring-security-config")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("io.jsonwebtoken:jjwt:0.9.1")
 
     //Using Springdoc instead of springfox
     implementation("org.springdoc:springdoc-openapi-ui:1.6.11")
@@ -76,14 +80,6 @@ java.sourceSets["main"].java {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-noArg {
-    annotation("com.my.Annotation")
-}
-
-noArg {
-    invokeInitializers = true
 }
 
 allOpen {

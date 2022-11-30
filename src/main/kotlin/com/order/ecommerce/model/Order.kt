@@ -1,60 +1,74 @@
 package com.order.ecommerce.model
 
+import com.order.ecommerce.dto.OrderDto
+import com.order.ecommerce.dto.OrderItemDto
+import com.order.ecommerce.enum.OrderStatus
 import lombok.Data
+import org.hibernate.annotations.CreationTimestamp
+import org.hibernate.annotations.UpdateTimestamp
 import java.io.Serializable
 import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
-@Table(name = "ecommerce_order")
+@Table(name = "orders")
 @Data
-class Order(
-
+class Order : Serializable {
     @Id
-    @Column(name = "order_id", nullable = false, unique = true)
-    open var orderId: String,
+    @GeneratedValue
+    @Column(name = "id")
+    var orderId: Long? = null
 
-    @Column(name = "order_status")
-    open var orderStatus: String,
+    @Column(name = "orderStatus")
+    var orderStatus: OrderStatus? = null
 
-    @Column(name = "sub_total")
-    open var subTotal: Double,
-
-    @Column(name = "total_amt")
-    open var totalAmt: Double,
-
-    @Column(name = "tax")
-    open var tax: Double,
+    @Column(name = "total_amount")
+    var totalAmount: Double = 0.0
 
     @Column(name = "shipping_charges")
-    open var shippingCharges: Double,
-
-    @Column(name = "title")
-    open var title: String,
+    var shippingCharges: Double = 0.0
 
     @Column(name = "shipping_mode")
-    open var shippingMode: String,
-
-    @Column(name = "created_at")
-    open var createdAt: LocalDateTime,
+    var shippingMode: String? = null
 
     @OneToOne(cascade = [CascadeType.ALL])
-    @JoinColumn(referencedColumnName = "payment_id", name = "payment_id")
-    open var payment: Payment,
+    @JoinColumn(referencedColumnName = "id", name = "payment_id")
+    var payment: Payment? = null
 
-    @OneToOne
-    @JoinColumn(referencedColumnName = "address_id", name = "billing_address_id")
-    open var billingAddress: Address,
+    @OneToOne(cascade = [CascadeType.ALL])
+    @JoinColumn(referencedColumnName = "id", name = "shipping_address_id")
+    var shippingAddress: Address?= null
 
-    @OneToOne
-    @JoinColumn(referencedColumnName = "address_id", name = "shipping_address_id")
-    open var shippingAddress: Address,
+    @OneToOne(cascade = [CascadeType.ALL])
+    @JoinColumn(referencedColumnName = "id", name = "billing_address_id")
+    var billingAddress: Address? = null
 
-    @OneToMany(targetEntity = OrderItem::class, fetch = FetchType.LAZY, mappedBy = "order")
-    open var orderItems: MutableList<OrderItem>?,
+    @OneToMany(targetEntity = OrderItem::class, fetch = FetchType.LAZY , mappedBy = "order", cascade = [CascadeType.ALL])
+    var orderItems: List<OrderItem>? = null
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id", insertable = false, updatable = false, nullable = true)
-    private var customer: Customer?
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(referencedColumnName = "id", name = "user_id")
+    var user: User? = null
 
-) : Serializable
+    @Column(name = "created_at")
+    @field:CreationTimestamp
+    lateinit var createdAt: LocalDateTime
+
+    @Column(name = "updated_at")
+    @field:UpdateTimestamp
+    lateinit var updatedAt: LocalDateTime
+
+    fun toOrderDto(): OrderDto {
+        return OrderDto(
+            userId = user?.id ?: 0,
+            totalAmount = totalAmount,
+            orderStatus = orderStatus,
+            shippingCharges = shippingCharges,
+            shippingMode = shippingMode ?: "",
+            paymentDto = payment?.toPaymentDto(),
+            billingAddress = billingAddress?.toAddressDto(),
+            shippingAddress = shippingAddress?.toAddressDto(),
+            orderItems = orderItems?.map { it.toOrderItemDto() }?.toMutableList() as List<OrderItemDto>
+        )
+    }
+}

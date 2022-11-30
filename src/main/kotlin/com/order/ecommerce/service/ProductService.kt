@@ -1,40 +1,42 @@
 package com.order.ecommerce.service
 
 import com.order.ecommerce.dto.ProductDto
+import com.order.ecommerce.dto.toProduct
 import com.order.ecommerce.model.Product
 import com.order.ecommerce.repository.ProductRepository
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.slf4j.LoggerFactory.getLogger
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.time.LocalDate
+import org.webjars.NotFoundException
 
 @Service
-class ProductService(val productRepository: ProductRepository) {
+class ProductService {
+
+    @Autowired
+    private lateinit var  productRepository: ProductRepository
 
     companion object {
-        val log: Logger = LoggerFactory.getLogger(ProductService::class.java)
+        val log: Logger = getLogger(ProductService::class.java)
     }
 
-    fun createProduct(productDto: ProductDto): Product {
-        log.info("Creating Product with productId {}", productDto.productId)
-        return productRepository.save(productDto.toProductEntity())
-
+    fun create(productDto: ProductDto): ProductDto {
+        log.info("Creating product for ${productDto.title}")
+        val product = productRepository.save(productDto.toProduct())
+        return product.toProductDto()
     }
 
-    fun getProduct(productId: String): Product {
-        log.info("Get Product by productId {}", productId)
-        return productRepository.findById(productId).orElseThrow()
-
+    fun getById(productId: Long): ProductDto {
+        log.info("Fetching product by productId :: $productId")
+        val product = productRepository.findById(productId).orElseThrow { NotFoundException("Product not found") }
+        return product.toProductDto()
     }
 
-    fun ProductDto.toProductEntity() = Product(
-        productId = productId,
-        sku = sku,
-        title = title,
-        description = description,
-        price = price,
-        createdAt = LocalDate.now(),
-        orderItems = null
-    )
-
+    fun updateQuantity(id: Long, quantity: Int) {
+        log.info("Fetching product by productId :: $id")
+        val product: Product = productRepository.findById(id).orElseThrow()
+        product.quantity = quantity
+        log.info("Updating order quantity :: $quantity")
+        productRepository.save(product)
+    }
 }

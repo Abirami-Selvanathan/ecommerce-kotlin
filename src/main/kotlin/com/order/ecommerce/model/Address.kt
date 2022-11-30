@@ -1,42 +1,57 @@
 package com.order.ecommerce.model
 
-import java.io.Serializable
-import java.time.LocalDate
+import com.order.ecommerce.dto.AddressDto
+import org.hibernate.annotations.CreationTimestamp
+import org.hibernate.annotations.UpdateTimestamp
+import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
-@Table(name = "ecommerce_address")
-class Address(
-
+@Table(name = "Address")
+class Address {
     @Id
-    @Column(name = "address_id", nullable = false, unique = true)
-    private var addressId: String,
+    @GeneratedValue
+    @Column(name = "id")
+    var id: Long? = null
 
-    @Column(name = "address1", nullable = false)
-    private var address1: String,
+    @Column(name = "address1")
+    var address1: String? = null
 
-    @Column(name = "address2", nullable = false)
-    private var address2: String,
+    @Column(name = "address2")
+    var address2: String? = null
 
-    @Column(name = "city", nullable = false)
-    private var city: String,
+    @Column(name = "city")
+    var city: String? = null
 
-    @Column(name = "state", nullable = false)
-    private var state: String,
+    @Column(name = "state")
+    var state: String? = null
 
-    @Column(name = "zip", nullable = false)
-    private var zip: String,
+    @Column(name = "zip")
+    var zip: Int? = null
 
-    @Column(name = "email", nullable = false)
-    private var email: String,
+    @Column(name = "email")
+    var email: String? = null
 
-    @Column(name = "phone", nullable = false)
-    private var phone: String,
+    @Column(name = "phone")
+    var phone: Int? = null
 
-    @Column(name = "createdAt", nullable = false)
-    private var createdAt: LocalDate,
+    @Column(name = "created_at")
+    @field:CreationTimestamp
+    lateinit var createdAt: LocalDateTime
 
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "billingAddress")
-    private var order: Order?
+    @Column(name = "updated_at")
+    @field:UpdateTimestamp
+    lateinit var updatedAt: LocalDateTime
 
-) : Serializable
+    fun toAddressDto(): AddressDto {
+        return AddressDto(
+            address1 = address1,
+            address2 = address2,
+            city = city,
+            state = state,
+            zip = zip,
+            email = email,
+            phone = phone
+        )
+    }
+}

@@ -35,7 +35,7 @@ create table if not exists ecommerce_order
 (
     order_id            varchar(60) PRIMARY KEY,
     created_at          timestamp,
-    customer_id         varchar(60),
+    user_id         varchar(60),
     order_status        varchar(60),
     shipping_charges    double precision,
     shipping_mode       varchar(60),

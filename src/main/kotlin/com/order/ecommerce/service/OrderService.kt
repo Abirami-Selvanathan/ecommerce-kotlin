@@ -1,72 +1,64 @@
 package com.order.ecommerce.service
 
-import com.order.ecommerce.dto.OrderCreateResponse
-import com.order.ecommerce.dto.OrderDto
+import com.order.ecommerce.dto.*
 import com.order.ecommerce.enum.OrderStatus
-import com.order.ecommerce.mapper.OrderDetailsMapper
+import com.order.ecommerce.enum.PaymentStatus.PROCESSING
 import com.order.ecommerce.model.Order
-import com.order.ecommerce.model.OrderItem
-import com.order.ecommerce.repository.OrderItemRepository
 import com.order.ecommerce.repository.OrderRepository
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.slf4j.LoggerFactory.getLogger
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
-import java.util.*
+import org.webjars.NotFoundException
 import javax.transaction.Transactional
 
 @Service
-class OrderService(
-    val orderRepository: OrderRepository,
-    val orderDetailsMapper: OrderDetailsMapper,
-    val orderItemRepository: OrderItemRepository
-) {
+class OrderService {
+
+    @Autowired
+    private lateinit var orderRepository: OrderRepository
+
+    @Autowired
+    private lateinit var orderItemService: OrderItemService
+
+    @Autowired
+    private lateinit var userService: UserService
 
     companion object {
-        val log: Logger = LoggerFactory.getLogger(OrderService::class.java)
+        val log: Logger = getLogger(OrderService::class.java)
     }
 
-    fun updateOrderStatus(orderId: String, orderStatus: String) {
-        val order: Order = orderRepository.findById(orderId).orElseThrow()
+    fun updateOrderStatus(orderId: Long, orderStatus: OrderStatus) {
+        log.info("Fetching orderId :: $orderId")
+        val order: Order = orderRepository.findById(orderId).orElseThrow { NotFoundException("Order not found") }
         order.orderStatus = orderStatus
+        log.info("Updating order status :: $orderStatus")
         orderRepository.save(order)
     }
 
-    fun findOrderById(orderId: String): Order {
-        //Always return a dto - Need to map entity to dto to get all fields
-        return orderRepository.findById(orderId).orElseThrow()
+    fun findOrderById(orderId: Long): OrderDto {
+        log.info("Fetching orderId :: $orderId")
+        val order = orderRepository.findById(orderId).orElseThrow { NotFoundException("Order not found") }
+        return order.toOrderDto()
     }
 
     @Transactional
-    fun createOrder(orderDto: OrderDto): OrderCreateResponse {
-        log.info("Creating Order for customer {}", orderDto.customerId)
-        val savedOrder: Order =
-            orderRepository.save(orderDto.toOrderEntity(UUID.randomUUID().toString()))
+    fun createOrder(orderDto: OrderDto): OrderResponseDto {
+        val userId = orderDto.userId
+        val user = userService.findById(userId)
+        log.info("Creating order for user :: $userId")
 
-        val orderItemList: List<OrderItem> =
-            orderDetailsMapper.buildOrderItems(orderDto.orderItems, savedOrder.orderId)
-        orderItemRepository.saveAll(orderItemList)
-        //Always return a dto - Need to map entity to dto
-        return OrderCreateResponse(savedOrder.orderId, savedOrder.orderStatus)
+        val billingAddress = orderDto.billingAddress?.toAddress()
+        val shippingAddress = orderDto.shippingAddress?.toAddress()
+        val payment = orderDto.paymentDto?.toPayment()
+        payment?.paymentStatus = PROCESSING
 
+        val order = orderDto.toOrder(billingAddress, shippingAddress, user, payment)
+        val savedOrder: Order = orderRepository.save(order)
+
+        val orderItemResponses: List<OrderItemResponseDto> =
+            orderItemService.saveOrderItems(orderDto.orderItems, savedOrder)
+
+        return OrderResponseDto(savedOrder.orderId, savedOrder.orderStatus, orderItemResponses)
     }
-
-    fun OrderDto.toOrderEntity(orderId: String) = Order(
-        orderId = orderId,
-        orderStatus = OrderStatus.PROCESSING.name,
-        customer = null,
-        subTotal = subTotal,
-        totalAmt = totalAmt,
-        tax = tax,
-        shippingCharges = shippingCharges,
-        title = title,
-        shippingMode = shippingMode,
-        createdAt = LocalDateTime.now(),
-        payment = orderDetailsMapper.buildAndLoadPayment(amount, paymentMode),
-        billingAddress = orderDetailsMapper.buildAndLoadAddress(billingAddress),
-        shippingAddress = orderDetailsMapper.buildAndLoadAddress(shippingAddress),
-        orderItems = null
-
-    )
-
 }

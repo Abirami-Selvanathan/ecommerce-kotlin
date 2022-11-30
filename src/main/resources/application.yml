@@ -3,6 +3,8 @@ server:
   shutdown: graceful
   servlet:
     context-path: /order-ecommerce
+  error:
+    include-message: always
 
 spring:
   application:
@@ -19,12 +21,12 @@ spring:
         order_updates: true
         batch_versioned_data: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
   datasource:
     driverClassName: org.postgresql.Driver
-    url: ${spring.datasource.orderecommercedb.url}
-    username: ${spring.datasource.orderecommercedb.name}
-    password: ${spring.datasource.orderecommercedb.password}
+    url: jdbc:postgresql://localhost:5432/orderecommerce_db?currentSchema=public
+    username: orderecommerceuser
+    password: orderecommercepwd
     hikari:
       connection-timeout: 60000
       maximum-pool-size: 10
@@ -34,3 +36,6 @@ spring:
 logging:
   level:
     sql: trace
+jwt:
+  secret: "jwt_secret_key"
+  expirationDateInMs: 18000000
